@@ -12,7 +12,14 @@ function reducer(state, action) {
     case ACTIONS.MAKE_REQUEST:
       return { loading: true, pokemons: [] };
     case ACTIONS.GET_DATA:
-      return { ...state, loading: false, pokemons: action.payload.pokemons };
+      return {
+        ...state,
+        loading: false,
+        pokemons: action.payload.pokemons,
+        count: action.payload.count,
+        next: action.payload.next,
+        previous: action.payload.previous,
+      };
     case ACTIONS.ERROR:
       return { ...state, loading: false, error: action.payload.error };
     default:
@@ -20,28 +27,33 @@ function reducer(state, action) {
   }
 }
 
-// params: object of all the api params for the search bar
-// page: number of the page to fetch
-// To minimize the number of requests of the params, we will use the cancel token
-// e.g. bulbasaur: would have b, bu, bul, ... we can cancel the previous request
-export default function useFetchPokemons(params, page) {
+export default function useFetchPokemons({ limit = 20, offset = 0 } = {}) {
   const [state, dispatch] = useReducer(reducer, {
     pokemons: [],
     loading: true,
+    error: null,
+    count: 0,
+    next: null,
+    previous: null,
   });
 
   useEffect(() => {
     const cancelToken = axios.CancelToken.source();
     dispatch({ type: ACTIONS.MAKE_REQUEST }); //update the state to laoding
     axios
-      .get("https://pokeapi.co/api/v2/pokemon?limit=150", {
+      .get("https://pokeapi.co/api/v2/pokemon", {
         cancelToken: cancelToken.token,
-        params: { page: page, ...params },
+        params: { limit, offset },
       })
       .then((res) =>
         dispatch({
           type: ACTIONS.GET_DATA,
-          payload: { pokemons: res.data.results },
+          payload: {
+            pokemons: res.data.results,
+            count: res.data.count,
+            next: res.data.next,
+            previous: res.data.previous,
+          },
         }),
       )
       .catch((err) => {
@@ -52,7 +64,7 @@ export default function useFetchPokemons(params, page) {
     return () => {
       cancelToken.cancel(); //cancel the request if the component unmounts or params change
     };
-  }, [params, page]);
+  }, [limit, offset]);
 
   return state;
 }

@@ -1,44 +1,36 @@
-//import { useEffect, useState } from "react";
-import useFetchPokemons from "../hooks/useFetchPokemons";
-import { IoSearch } from "react-icons/io5";
-import PokemonList from "./PokemonList";
 import { useState } from "react";
+import useFetchPokemons from "../hooks/useFetchPokemons";
+import useFetchAllPokemons from "../hooks/useFetchAllPokemons";
+import { IoSearch, IoEllipsisHorizontalSharp } from "react-icons/io5";
+import PokemonList from "./PokemonList";
+import { ClipLoader } from "react-spinners";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import ReactPaginate from "react-paginate";
 
 function Pokemons() {
-  const { pokemons, loading, error } = useFetchPokemons();
-  const [pokemonName, setPokemonName] = useState("");
-  const [limit, setLimit] = useState(50);
-  /*
-  const [pokemons, setPokemons] = useState([]);
+  const [page, setPage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    const fetchPokemons = async () => {
-      try {
-        const response = await fetch(
-          "https://pokeapi.co/api/v2/pokemon?limit=20",
-        );
-        const data = await response.json();
-        setPokemons(data.results);
-      } catch (error) {
-        console.error("Error fetching Pokemons:", error);
-      }
-    };
-    fetchPokemons();
-  }, []);
-  */
+  const limit = 23;
+  const offset = page * limit;
 
-  const pokemonsByName = pokemons.filter((pokemon) =>
-    pokemon.name.includes(pokemonName.toLowerCase()),
-  );
+  const { pokemons, loading, error, count } = useFetchPokemons({
+    limit,
+    offset,
+  });
+  const { allPokemons } = useFetchAllPokemons();
 
-  /* controlled search
-  function handleSubmit(e) {
-    e.preventDefault();
-    setPokemonName(e.target.pokemonName.value);
-  }
-  */
+  const filteredPokemons = searchTerm
+    ? allPokemons.filter((p) => p.name.includes(searchTerm.toLowerCase()))
+    : pokemons;
 
-  return (
+  const totalPages = Math.ceil(count / limit);
+
+  return loading ? (
+    <div className="h-screen flex justify-center items-center">
+      <ClipLoader />
+    </div>
+  ) : (
     <section className="p-4 py-5">
       <form>
         <div className="bg-white p-3.5 flex rounded-2xl text-lg">
@@ -47,7 +39,7 @@ function Pokemons() {
             type="text"
             placeholder="Search Pokemons..."
             name="pokemonName"
-            onChange={(e) => setPokemonName(e.target.value.toLowerCase())}
+            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           />
           <button
             className="bg-red-500 text-white p-2 rounded-xl text-2xl shadow-md shadow-red-400 hover:bg-red-400 transition-colors"
@@ -57,7 +49,26 @@ function Pokemons() {
           </button>
         </div>
       </form>
-      <PokemonList pokemons={pokemonsByName.slice(0, limit)} />
+      <PokemonList pokemons={filteredPokemons.slice(0, limit)} />
+      <div className="flex justify-center mt-6">
+        <ReactPaginate
+          previousLabel={<IoIosArrowBack />}
+          nextLabel={<IoIosArrowForward />}
+          breakLabel={<IoEllipsisHorizontalSharp />}
+          pageCount={totalPages}
+          marginPagesDisplayed={1}
+          forcePage={page}
+          onPageChange={(selected) => setPage(selected.selected)}
+          containerClassName="flex items-center gap-2"
+          pageClassName=""
+          pageLinkClassName="px-3 py-2 rounded-md cursor-pointer"
+          activeClassName="py-0.5 bg-red-500 text-white rounded-md font-bold"
+          previousLinkClassName="cursor-pointer"
+          nextLinkClassName="cursor-pointer"
+          breakLinkClassName="cursor-pointer"
+          disabledLinkClassName="text-gray-300 cursor-not-allowed"
+        />
+      </div>
     </section>
   );
 }
