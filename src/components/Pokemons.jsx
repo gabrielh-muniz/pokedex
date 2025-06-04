@@ -43,7 +43,7 @@ function Pokemons() {
           />
           <button
             className="bg-red-500 text-white p-2 rounded-xl text-2xl shadow-md shadow-red-400 hover:bg-red-400 transition-colors"
-            type="submit"
+            type="button"
           >
             <IoSearch />
           </button>

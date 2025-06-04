@@ -1,28 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { colorByType } from "../utils/pokemon";
+import { ClipLoader } from "react-spinners";
 
-function PokemonCard({ pokemonURL }) {
+function PokemonCard({ pokemonURL, onClick }) {
   const [pokemonInfo, setPokemonInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /*
-  useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const res = await fetch(pokemonURL);
-        const data = await res.json();
-        setPokemonInfo(data);
-        console.log(data);
-      } catch (error) {
-        console.error("Error fetching Pokemon:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPokemon();
-  });
-  */
   useEffect(() => {
     axios
       .get(pokemonURL)
@@ -32,9 +16,14 @@ function PokemonCard({ pokemonURL }) {
   }, []);
 
   return loading ? (
-    <div>Loading...</div>
+    <div className="flex justify-center items-center">
+      <ClipLoader />
+    </div>
   ) : (
-    <article className="bg-white text-center rounded-3xl relative font-semibold capitalize pb-2 shadow-md shadow-slate-400/10 border-2 border-transparent hover:border-slate-200 cursor-pointer group grid gap-2">
+    <article
+      onClick={() => onClick(pokemonInfo)}
+      className="bg-white text-center rounded-3xl relative font-semibold capitalize pb-2 shadow-md shadow-slate-400/10 border-2 border-transparent hover:border-slate-200 cursor-pointer group grid gap-2"
+    >
       <header className="h-9">
         <img
           className="absolute left-1/2 -translate-x-1/2 top-0 -translate-y-1/2 group-hover:scale-130 transition-transform duration-300 pixelated"
